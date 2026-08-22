@@ -1,3 +1,6 @@
+import type { Exercise } from "./exercises/types";
+import type { WorkoutDay } from "./workout/types";
+
 export type WorkoutSet = {
   id: number;
   targetReps: number;
@@ -9,98 +12,88 @@ export type WorkoutSet = {
 
 export type WorkoutExercise = {
   id: number;
+  exerciseId: string;
   name: string;
-  muscle: string;
-  equipment: string;
+  muscle: Exercise["muscleGroup"];
+  secondaryMuscles: Exercise["secondaryMuscles"];
+  equipment: Exercise["equipment"];
+  difficulty: Exercise["difficulty"];
+  image: string;
+  instructions: string[];
   sets: WorkoutSet[];
   restSeconds: number;
 };
 
-export const workoutData = {
-  title: "Upper Body",
-  subtitle: "Chest, Back & Shoulders",
-  duration: 45,
-  exercises: [
-    {
-      id: 1,
-      name: "Bench Press",
-      muscle: "Chest",
-      equipment: "Barbell",
-      restSeconds: 120,
-      sets: [
-        {
-          id: 1,
-          targetReps: 10,
-          targetWeight: 40,
-          completed: false,
-        },
-        {
-          id: 2,
-          targetReps: 10,
-          targetWeight: 40,
-          completed: false,
-        },
-        {
-          id: 3,
-          targetReps: 8,
-          targetWeight: 42.5,
-          completed: false,
-        },
-      ],
-    },
-    {
-      id: 2,
-      name: "Lat Pulldown",
-      muscle: "Back",
-      equipment: "Cable",
-      restSeconds: 90,
-      sets: [
-        {
-          id: 1,
-          targetReps: 10,
-          targetWeight: 45,
-          completed: false,
-        },
-        {
-          id: 2,
-          targetReps: 10,
-          targetWeight: 45,
-          completed: false,
-        },
-        {
-          id: 3,
-          targetReps: 10,
-          targetWeight: 45,
-          completed: false,
-        },
-      ],
-    },
-    {
-      id: 3,
-      name: "Shoulder Press",
-      muscle: "Shoulders",
-      equipment: "Dumbbell",
-      restSeconds: 90,
-      sets: [
-        {
-          id: 1,
-          targetReps: 10,
-          targetWeight: 12.5,
-          completed: false,
-        },
-        {
-          id: 2,
-          targetReps: 10,
-          targetWeight: 12.5,
-          completed: false,
-        },
-        {
-          id: 3,
-          targetReps: 8,
-          targetWeight: 15,
-          completed: false,
-        },
-      ],
-    },
-  ],
+export type WorkoutDisplayExercise = WorkoutExercise;
+
+export type WorkoutDisplayData = {
+  title: string;
+  subtitle: string;
+  duration: number;
+  type: string;
+  exercises: WorkoutExercise[];
 };
+
+function convertExercise(
+  exercise: Exercise,
+  index: number,
+): WorkoutExercise {
+  const sets: WorkoutSet[] = Array.from(
+    {
+      length: exercise.defaultSets,
+    },
+    (_, setIndex) => ({
+      id: setIndex + 1,
+      targetReps: exercise.repRange.min,
+      targetWeight: 0,
+      completed: false,
+      actualReps: undefined,
+      actualWeight: undefined,
+    }),
+  );
+
+  return {
+    id: index + 1,
+    exerciseId: exercise.id,
+    name: exercise.name,
+    muscle: exercise.muscleGroup,
+    secondaryMuscles: exercise.secondaryMuscles,
+    equipment: exercise.equipment,
+    difficulty: exercise.difficulty,
+    image: exercise.image,
+    instructions: exercise.instructions,
+    restSeconds: exercise.restSeconds,
+    sets,
+  };
+}
+
+export function convertWorkoutDay(
+  day: WorkoutDay,
+): WorkoutDisplayData {
+  return {
+    title: day.type,
+
+    type: day.type,
+
+    subtitle:
+      day.type === "Rest"
+        ? "Recovery Day"
+        : day.exercises
+            .slice(0, 3)
+            .map(
+              (exercise) =>
+                exercise.muscleGroup,
+            )
+            .join(", "),
+
+    duration: day.durationMinutes,
+
+    exercises: day.exercises.map(
+      (exercise, index) =>
+        convertExercise(
+          exercise as unknown as Exercise,
+          index,
+        ),
+    ),
+  };
+}

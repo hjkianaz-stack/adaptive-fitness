@@ -5,13 +5,23 @@ import nextTs from "eslint-config-next/typescript";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
-  // Override default ignores of eslint-config-next.
+
   globalIgnores([
-    // Default ignores of eslint-config-next:
+    // Next.js generated files
     ".next/**",
+
+    // OpenNext Cloudflare generated files
+    ".open-next/**",
+
+    // Build outputs
     "out/**",
     "build/**",
+
+    // Generated TypeScript files
     "next-env.d.ts",
+
+    // Dependencies
+    "node_modules/**",
   ]),
 ]);
 
